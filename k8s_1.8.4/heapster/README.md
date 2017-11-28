@@ -193,3 +193,9 @@ A4：
 	https://github.com/kubernetes/dashboard/issues/1584
 	https://github.com/kubernetes/heapster/issues/1348#issuecomment-256480147
 	https://github.com/kubernetes/heapster/issues/1143
+
+
+
+Q5:monitoring-grafana没数据
+
+A5：需要重新创建一下
