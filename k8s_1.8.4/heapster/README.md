@@ -198,4 +198,23 @@ A4：
 
 Q5:monitoring-grafana没数据
 
-A5：需要重新创建一下
+A5：需要重新创建一下,检查日期
+	$ date "+%Y-%m-%d"  
+	2017-11-24
+	
+	修改时间：date -s "2017-11-28 12:13:0"
+	或者时间与网络同步：
+	
+	1.删除本地时间并设置时区为上海
+	rm -rf /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+	
+	2.安装ntpdate工具,设置系统时间与网络时间同步,cn.pool.ntp.org
+	yum -y install ntp ntpdate
+	ntpdate ntp.api.bz 
+	
+	3.  将系统时间写入硬件时间(/sbin/hwclock --systohc)
+	
+	# hwclock --systohc
+	
+	然后重新创建
