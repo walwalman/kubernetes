@@ -5,7 +5,7 @@
 	cd /home/kubernetes/kubernetes/cluster/addons/dashboard
 	[root@localhost dashboard]# ls
 	dashboard-controller.yaml  dashboard-service.yaml  MAINTAINERS.md  README.md
-	[root@localhost dashboard]# 
+	[root@localhost dashboard]# kubectl cluster-info
 
 
 官方没有rbac.yaml这个文件，自己创建~~
@@ -127,6 +127,16 @@ Q2:如果安装了kube-dns和heapster，发现还是没有图像等信息，容�
 
 A2：删除并重新创建下dashboard面板即可！
 
+
+Q3:重启服务器后，面板启动不了,kube-dns也启动不了， Warning  FailedSync             1m (x6 over 2m)  kubelet, 192.168.122.148  Error syncing pod
+和Readiness probe failed: Get http://10.254.82.9:8081/readiness: dial tcp 10.254.82.9:8081: getsockopt: connection refused
+
+A3：	发现没有关闭防火墙。
+	
+	 systemctl stop firewalld
+	 systemctl disable firewalld
+
+	
 
 由于缺少 Heapster 插件，当前 dashboard 不能展示 Pod、Nodes 的 CPU、内存等 metric 图形；
 

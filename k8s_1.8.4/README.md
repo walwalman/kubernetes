@@ -1,5 +1,21 @@
 ## 在CentOS7.2上部署kubernetes1.8.4集群
 
+### 注意事项
+
+使用前，请先关闭防火墙！
+
+	 systemctl stop firewalld
+	 systemctl disable firewalld
+
+以及查看linux服务器时间是否正确：
+
+	date "+%Y-%m-%d" 
+
+
+墙的问题：
+
+	方法1：直接在docker hub和github上关联编译，生成镜像。下载走的是docker hub的网络。
+	方法2：找一个代理地址，如将gcr.io替换成gcr.mirrors.ustc.edu.cn就很容易的可以下载墙外镜像了
 
 
 
@@ -8,7 +24,7 @@
 
 
 ### [dashboard面板](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/dashboard/README.md)
->kubernetes web ui查看
+>kubernetes web ui查看,cpu，内存需要安装heapster之后，再重新创建dashboard，即可看到！
 
 ![https-6443](https://raw.githubusercontent.com/zouhuigang/kubernetes/master/k8s_1.8.4/dashboard/images/20171128095851.png)
 
@@ -20,6 +36,7 @@
 ### [heapster](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/heapster/README.md)
 >Heapster是容器集群监控和性能分析工具，天然的支持Kubernetes和CoreOS,创建完成之后，可能需要重新创建下dashboard才会显示图像。
 
+![https-6443](https://raw.githubusercontent.com/zouhuigang/kubernetes/master/k8s_1.8.4/heapster/images/20171128135148.png)
 
 ### [kubectl](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/kubectl.md)
 >使用Https时需要更改kubectl参数，使得能正常使用！
