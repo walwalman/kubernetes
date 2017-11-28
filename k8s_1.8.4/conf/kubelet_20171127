@@ -15,8 +15,6 @@ KUBELET_POD_INFRA_CONTAINER="--pod-infra-container-image=registry.access.redhat.
 
 # Add your own!
 KUBELET_ARGS="--cgroup-driver=systemd \
---runtime-cgroups=/systemd/system.slice \
---kubelet-cgroups=/systemd/system.slice \
 --cluster-dns=10.254.200.200 \
 --experimental-bootstrap-kubeconfig=/etc/kubernetes/bootstrap.kubeconfig \
 --kubeconfig=/etc/kubernetes/kubelet.kubeconfig \

@@ -72,10 +72,130 @@
 
 ### 测试dns是否成功
 
+##### 方式1：
+
+test-nginx.yaml:
+
+	apiVersion: extensions/v1beta1
+	kind: Deployment
+	metadata:
+	  name: dep-nginx
+	spec:
+	  replicas: 2
+	  template:
+	    metadata:
+	      labels:
+	        run: pod-nginx
+	    spec:
+	      containers:
+	      - name: nginx
+	        image: nginx:1.9
+	        ports:
+	        - containerPort: 80
+
+
+创建：
+
+	kubectl create -f test-nginx.yaml
+	kubectl expose deploy dep-nginx #暴露服务
+	kubectl get services --all-namespaces |grep dep-nginx
+	default       dep-nginx              ClusterIP   10.254.188.157   <none>        80/TCP          37m
+
+
+再启动一个pod：
+
+pod-nginx.yaml:
+
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: nginx
+	spec:
+	  containers:
+	  - name: nginx
+	    image: nginx:1.9
+	    ports:
+	    - containerPort: 80
+
+创建：
+
+	kubectl create -f pod-nginx.yaml
+
+验证:
+
+> 查看 /etc/resolv.conf 是否包含 kubelet 配置的 --cluster-dns 和 --cluster-domain
+
+	$ kubectl exec  nginx -i -t -- /bin/bash
+	root@nginx:/# cat /etc/resolv.conf
+	nameserver 10.254.200.200
+	search default.svc.cluster.local svc.cluster.local cluster.local localdomain
+	options ndots:5
+	root@nginx:/# 
+
+>是否能够将服务 my-nginx 解析到上面显示的 Cluster IP 10.254.188.157
+
+	root@nginx:/# ping dep-nginx                                                                                                                                                                                     
+	PING dep-nginx.default.svc.cluster.local (10.254.188.157): 56 data bytes
+	^C--- dep-nginx.default.svc.cluster.local ping statistics ---
+	332 packets transmitted, 0 packets received, 100% packet loss
+	
+
+从结果来看，service名称可以正常解析，但是ping不通，这是正常的，因为直接ping ClusterIP是ping不通的，ClusterIP是根据IPtables路由到服务的endpoint上，只有结合ClusterIP加端口才能访问到对应的服务。
 
 
 
-问题汇总：
+
+##### 方式2：
+
+pod-busybox.yaml:
+
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: busybox
+	  namespace: default
+	spec:
+	  containers:
+	  - image: busybox
+	    command:
+	      - sleep
+	      - "3600"
+	    imagePullPolicy: IfNotPresent
+	    name: busybox
+	  restartPolicy: Always
+
+
+创建并登陆容器：
+
+	kubectl create -f pod-busybox.yaml
+	kubectl exec -it busybox -- /bin/sh
+
+输入命令：
+
+	nslookup kubernetes 
+	或
+ 	kubectl exec --namespace=default busybox -- nslookup kubernetes.default
+
+
+输出结果：
+
+	/ # nslookup kubernetes
+	Server:    10.254.200.200
+	Address 1: 10.254.200.200 kube-dns.kube-system.svc.cluster.local
+	
+	Name:      kubernetes
+	Address 1: 10.254.0.1 kubernetes.default.svc.cluster.local
+
+
+### 查看命令
+
+	$ kubectl get ep kube-dns --namespace=kube-system
+	NAME       ENDPOINTS                       AGE
+	kube-dns   10.254.69.8:53,10.254.69.8:53   5h
+
+
+
+### 问题汇总：
 
 Q1：Back-off restarting failed container
 Error syncing pod

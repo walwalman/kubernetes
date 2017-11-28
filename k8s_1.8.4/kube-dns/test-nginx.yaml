@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: dep-nginx
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: pod-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.9
+        ports:
+        - containerPort: 80

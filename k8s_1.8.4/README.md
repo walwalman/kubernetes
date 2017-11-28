@@ -11,6 +11,10 @@
 >kubernetes web ui查看
 
 
+### [kube-dns](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/kube-dns/README.md)
+>pod与pod之前通过类似域名的东西互相访问
+
+
 ### [heapster](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/heapster/README.md)
 >Heapster是容器集群监控和性能分析工具，天然的支持Kubernetes和CoreOS。
 

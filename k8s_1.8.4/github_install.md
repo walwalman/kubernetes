@@ -1335,7 +1335,7 @@ A1:	将这个地址设置成： --insecure-bind-address=192.168.122.148,即可�
 	--insecure-bind-address=0.0.0.0
 
 
-Q2: pod一直在创建中，且systemctl status kubectl 显示 open /etc/docker/certs.d/registry.access.redhat.com/redhat-ca.crt no such file or directory
+Q2: pod一直在创建中，且systemctl status kubelet 显示 open /etc/docker/certs.d/registry.access.redhat.com/redhat-ca.crt no such file or directory
 
 A2:
 
