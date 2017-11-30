@@ -17,6 +17,10 @@
 	方法1：直接在docker hub和github上关联编译，生成镜像。下载走的是docker hub的网络。
 	方法2：找一个代理地址，如将gcr.io替换成gcr.mirrors.ustc.edu.cn就很容易的可以下载墙外镜像了
 
+新版本docker需要：
+
+	iptables -P FORWARD ACCEPT
+
 
 
 ### [安装kubernetes_1.8.4](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/github_install.md)
