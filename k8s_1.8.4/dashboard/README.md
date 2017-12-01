@@ -136,6 +136,18 @@ A3：	发现没有关闭防火墙。
 	 systemctl stop firewalld
 	 systemctl disable firewalld
 
+
+Q4:删除Pod，一直处于terminating,kubectl get node发现NotReady
+
+A4:
+
+	$ firewall-cmd --state #查看防火墙状态
+	not running
+	
+	重启所有服务
+
+	
+
 	
 
 由于缺少 Heapster 插件，当前 dashboard 不能展示 Pod、Nodes 的 CPU、内存等 metric 图形；

@@ -507,3 +507,5 @@ http://bbs.ceph.org.cn/question/390
 
 http://www.xuxiaopang.com/2016/10/09/ceph-quick-install-el7-jewel/
 
+http://tonybai.com/2016/11/07/integrate-kubernetes-with-ceph-rbd/
+
