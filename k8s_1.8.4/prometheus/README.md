@@ -81,6 +81,9 @@
 
 ### grafana数据显示
 
+>用户名:admin
+>密码：admin
+
 1.添加数据源
 
 ![nodePort方式数据源](./images/20171129101330.png)
