@@ -29,11 +29,16 @@ docker 1.12.x
 
 找到：
 
-	ExecStart=/usr/bin/dockerd
+	ExecStart=/usr/bin/dockerd-current \
 
 加入参数：
 
 	--storage-driver=overlay
+
+变成：
+	
+	ExecStart=/usr/bin/dockerd-current \
+        --storage-driver=overlay \
 
 
 ### 重启
