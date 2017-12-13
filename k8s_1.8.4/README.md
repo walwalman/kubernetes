@@ -22,6 +22,10 @@
 	iptables -P FORWARD ACCEPT
 
 
+更改存储驱动：
+
+[CentOS7 设置docker 的Storage Driver为OverlayFS](https://github.com/zouhuigang/kubernetes/blob/master/k8s_1.8.4/storageDriver.md)
+
 
 
 

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/xterm/dist/xterm.css">
+    <script src="/static/xterm/dist/xterm.js"></script>
+    <script src="/static/xterm/dist/addons/attach/attach.js"></script>
+    <meta charset="UTF-8">
+    <title>test</title>
+</head>
+<body>
+<div id="terminal"></div>
+<script>
+        var term = new Terminal();
+        term.open(document.getElementById('#terminal'));
+        # 直接调用docker daemon ws的接口；
+        var socket = new WebSocket('ws://docker_remote_ip:port/containers/e74dcccf608e/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1');
+        term.attach(socket);
+</script>
+</body>
+</html>
