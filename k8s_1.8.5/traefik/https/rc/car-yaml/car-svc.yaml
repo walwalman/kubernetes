@@ -3,7 +3,7 @@ kind: Service
 metadata:
     name: svc-car
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - name: http
       targetPort: 80
