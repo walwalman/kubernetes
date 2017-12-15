@@ -1,0 +1,42 @@
+# 开放两个 Ingress 端口
+defaultEntryPoints = ["http", "https"]
+logLevel = "INFO"
+
+# 启用 Kubernetes 支持
+[kubernetes]
+
+# 启用 Web Dashboard
+[web]
+address = ":8580"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    # http 访问自动转向到 https
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.auth.digest]
+    # 这一内容来自前面生成的 user.dat，所有服务都启用这一验证
+    users = ["zhg:traefik:54923e7537f7a0523fa7a4ac362d418d"]
+    [entryPoints.https.tls]
+
+# Let's Encrypt 配置
+[acme]
+
+email = "952750120@qq.com"
+# 刚才我们 PVC 中的文件
+storage = "acme.json"
+entryPoint = "https"
+OnHostRule = true
+caServer = "https://acme-staging.api.letsencrypt.org/directory"
+
+# 生成这些域名的证书
+[[acme.domains]]
+main = "traefik-dev.com"
+sans = ["admin.traefik-dev.com", "m.traefik-dev.com"]
+
+[[acme.domains]]
+main = "car.com"
+sans = ["www.car.com", "m.car.com"]

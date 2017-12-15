@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: ing-car
+spec:
+  tls:
+  - hosts:
+    - www.car.com
+  rules:
+  - host: www.car.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: svc-car
+          servicePort: 80

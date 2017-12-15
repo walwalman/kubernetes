@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  tls:
+  - hosts:
+    - traefik.fake-domain.com
+  rules:
+  - host: traefik.fake-domain.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: traefik-admin-service
+          servicePort: 8580

@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik
+  namespace: loadbalancer
+spec:
+  tls:
+  - hosts:
+    - admin.traefik-dev.com
+  rules:
+  - host: admin.traefik-dev.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: traefik-admin-service
+          servicePort: 8580

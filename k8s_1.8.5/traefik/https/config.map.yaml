@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  config.toml: "# 开放两个 Ingress 端口\r\ndefaultEntryPoints = [\"http\", \"https\"]\r\nlogLevel
+    = \"INFO\"\r\n\r\n# 启用 Kubernetes 支持\r\n[kubernetes]\r\n\r\n# 启用 Web Dashboard\r\n[web]\r\naddress
+    = \":8080\"\r\n\r\n[entryPoints]\r\n  [entryPoints.http]\r\n  address = \":80\"\r\n
+    \   # http 访问自动转向到 https\r\n    [entryPoints.http.redirect]\r\n    entryPoint
+    = \"https\"\r\n  [entryPoints.https]\r\n  address = \":443\"\r\n  [entryPoints.https.auth.digest]\r\n
+    \   # 这一内容来自前面生成的 user.dat，所有服务都启用这一验证\r\n    users = [\"guest:traefik:6ff0d8e6cfd4f9b66beeea5b3a71abbd\"]\r\n
+    \   [entryPoints.https.tls]\r\n\r\n# Let's Encrypt 配置\r\n[acme]\r\n\r\nemail =
+    \"952750120@qq.com\"\r\n# 刚才我们 PVC 中的文件\r\nstorage = \"/var/data/acme.json\"\r\nentryPoint
+    = \"https\"\r\n\r\n# 生成这些域名的证书\r\n[[acme.domains]]\r\nmain = \"fake-domain.com\"\r\nsans
+    = [\"traefik.fake-domain.com\", \"kibana.fake-domain.com\", \"prometheus.fake-domain.com\",
+    \"grafana.fake-domain.com\", \"traefik.fake-domain.com\",  \"other.fake-domain.com\"]\r\n"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: traefik

@@ -1,0 +1,13 @@
+# Dashboard
+kind: Service
+apiVersion: v1
+metadata:
+  name: traefik-admin-service
+  namespace: loadbalancer
+spec:
+  selector:
+    app: traefik
+  ports:
+    - protocol: TCP
+      port: 8580
+  type: ClusterIP

@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: traefik-ingress-controller
+  namespace: kube-system
+  labels:
+    k8s-app: traefik-ingress-lb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: traefik-ingress-lb
+  template:
+    metadata:
+      labels:
+        k8s-app: traefik-ingress-lb
+        name: traefik-ingress-lb
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      terminationGracePeriodSeconds: 60
+      containers:
+      - image: traefik
+        name: traefik-ingress-lb
+        args:
+        - -c
+        - /etc/traefik/config.toml
+        # 加载 PVC 和配置文件
+        volumeMounts:
+          - name: config
+            mountPath: /etc/traefik
+          - name: data
+            mountPath: /var/data
+      volumes:
+        - name: config
+          configMap:
+            name: traefik
+        - name: data
+          persistentVolumeClaim:
+            claimName: traefik

@@ -1,0 +1,36 @@
+# 开放两个 Ingress 端口
+defaultEntryPoints = ["http", "https"]
+logLevel = "INFO"
+
+# 启用 Kubernetes 支持
+[kubernetes]
+
+# 启用 Web Dashboard
+[web]
+address = ":8080"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    # http 访问自动转向到 https
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.auth.digest]
+    # 这一内容来自前面生成的 user.dat，所有服务都启用这一验证
+    users = ["guest:traefik:6ff0d8e6cfd4f9b66beeea5b3a71abbd"]
+    [entryPoints.https.tls]
+
+# Let's Encrypt 配置
+[acme]
+
+email = "952750120@qq.com"
+# 刚才我们 PVC 中的文件
+storage = "/var/data/acme.json"
+entryPoint = "https"
+
+# 生成这些域名的证书
+[[acme.domains]]
+main = "fake-domain.com"
+sans = ["traefik.fake-domain.com", "kibana.fake-domain.com", "prometheus.fake-domain.com", "grafana.fake-domain.com", "traefik.fake-domain.com",  "other.fake-domain.com"]
