@@ -1,6 +1,8 @@
 # 开放两个 Ingress 端口
+# 
 defaultEntryPoints = ["http", "https"]
-logLevel = "INFO"
+logLevel = "DEBUG"
+#logLevel = "INFO"
 
 # 启用 Kubernetes 支持
 [kubernetes]
@@ -8,6 +10,9 @@ logLevel = "INFO"
 # 启用 Web Dashboard
 [web]
 address = ":8580"
+[web.auth.digest]
+# 这一内容来自前面生成的 user.dat，所有服务都启用这一验证
+users = ["zhg:traefik:54923e7537f7a0523fa7a4ac362d418d"]
 
 [entryPoints]
   [entryPoints.http]
@@ -16,27 +21,34 @@ address = ":8580"
     [entryPoints.http.redirect]
     entryPoint = "https"
   [entryPoints.https]
-  address = ":443"
-  [entryPoints.https.auth.digest]
-    # 这一内容来自前面生成的 user.dat，所有服务都启用这一验证
-    users = ["zhg:traefik:54923e7537f7a0523fa7a4ac362d418d"]
+    address = ":443"
     [entryPoints.https.tls]
+	# certs used as default certs
+      #[[entryPoints.https.tls.certificates]]
+      #certFile = "/etc/traefik/certificates/traefik.crt"
+	  #keyFile = "/etc/traefik/certificates/traefik.key"
 
 # Let's Encrypt 配置
 [acme]
-
 email = "952750120@qq.com"
-# 刚才我们 PVC 中的文件
-storage = "acme.json"
+#storage = "acme.json"
+#/etc/traefik/acme.json
+storageFile = "/acme.json"
 entryPoint = "https"
-OnHostRule = true
+#OnHostRule = true
 caServer = "https://acme-staging.api.letsencrypt.org/directory"
+#dnsProvider = "digitalocean"
+onDemand = true
 
 # 生成这些域名的证书
-[[acme.domains]]
-main = "traefik-dev.com"
-sans = ["admin.traefik-dev.com", "m.traefik-dev.com"]
+#[[acme.domains]]
+#main = "traefik-dev.com"
+#sans = ["admin.traefik-dev.com", "m.traefik-dev.com"]
 
 [[acme.domains]]
-main = "car.com"
-sans = ["www.car.com", "m.car.com"]
+main = "t.51joinup.com"
+sans = ["t.51joinup.com"]
+
+[file]
+filename = "/etc/traefik/traefik.toml"
+watch = true

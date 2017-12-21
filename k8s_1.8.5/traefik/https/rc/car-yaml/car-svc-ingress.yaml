@@ -2,12 +2,12 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
     name: ing-car
+    annotations:
+#kubernetes.io/tls-acme: "true"
+      kubernetes.io/ingress.class: traefik
 spec:
-  tls:
-  - hosts:
-    - www.car.com
   rules:
-  - host: www.car.com
+  - host: t.51joinup.com
     http:
       paths:
       - path: /

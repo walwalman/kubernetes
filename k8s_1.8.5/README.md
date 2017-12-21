@@ -641,7 +641,299 @@ vi /etc/kubernetes/proxy
 
  	curl 10.254.65.2:80
 
+
+问题汇总：
+
+Q1：
+
+	$ kubectl get node
+	NAME            STATUS     ROLES     AGE       VERSION
+	47.100.76.132   NotReady   <none>    5d        v1.8.5
+
+A1：
+
+	kubectl delete node 47.100.76.132
+
+	systemctl restart kubelet
+	
+
+Q2:
+	etcd不能启动
+	the server is already initialized as member before, starting as etcd member
+	
+A2:
+
+	rm -rf /var/lib/etcd2
+	还是不行
+	删除重安装etcd
+	vi /etc/etcd/etcd.conf
+
+
+q3:
+
+	Failed at step CHDIR spawning /usr/bin/etcd: No such file or directory
+
+	Failed at step CHDIR spawning /usr/bin/etcd: No such file or directory
+
+A3:
+
+	vi /usr/lib/systemd/system/etcd.service将User=etcd改为:
+	User=root
+
+	#启动
+	systemctl daemon-reload
+	systemctl restart etcd
+
+	发现还是有问题，
+	WorkingDirectory=/var/lib/etcd 这个目录没创建
+	mkdir -p /var/lib/etcd
+
+
+Q4:
+
+	[root@k8s-master1 etcd]# etcdctl  set /coreos.com/network/config '{"Network":"10.254.0.0/16"}'
+	Error:  client: etcd cluster is unavailable or misconfigured; error #0: dial tcp 127.0.0.1:2379: getsockopt: connection refused
+	; error #1: dial tcp 127.0.0.1:4001: getsockopt: connection refused
+	
+	error #0: dial tcp 127.0.0.1:2379: getsockopt: connection refused
+	error #1: dial tcp 127.0.0.1:4001: getsockopt: connection refused
+
+
+A4:
+
+	etcd is configured but not etcdctl. Try setting the environment variable ETCDCTL_ENDPOINTS=http://10.11.51.166:2379 for etcdctl or adding an internal client listener on 127.0.0.1 via ETCD_LISTEN_CLIENT_URLS="http://10.11.51.166:2379,http://127.0.0.1:2379" for etcd so the etcdctl defaults work.
+
+	https://github.com/coreos/etcd/issues/7349
+
+	我的方法是修改:
+	vi /etc/etcd/etcd.conf
+	ETCD_LISTEN_CLIENT_URLS="http://47.100.76.132:2379,http://127.0.0.1:2379"
+
+
+
+Q5 : POD不能访问外网的问题
+
+
+A5：
+	
+	===============================
+	=  pod->docker0网卡->外网      =
+	=  pod->Flannel网卡->其他pod   =
+	===============================
+
+安装traceroute
+
+	yum install -y traceroute
+
+#查看pod中的默认网卡
+
+	[root@k8s-master1 ~]# kubectl exec busybox -- ifconfig
+	eth0      Link encap:Ethernet  HWaddr 02:42:0A:FE:03:06  
+	          inet addr:10.254.3.6  Bcast:0.0.0.0  Mask:255.255.255.0
+	          inet6 addr: fe80::42:aff:fefe:306/64 Scope:Link
+	          UP BROADCAST RUNNING MULTICAST  MTU:1472  Metric:1
+	          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+	          TX packets:8 errors:0 dropped:0 overruns:0 carrier:0
+	          collisions:0 txqueuelen:0 
+	          RX bytes:0 (0.0 B)  TX bytes:648 (648.0 B)
+	
+	lo        Link encap:Local Loopback  
+	          inet addr:127.0.0.1  Mask:255.0.0.0
+	          inet6 addr: ::1/128 Scope:Host
+	          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+	          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+	          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+	          collisions:0 txqueuelen:1 
+	          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+	
+	[root@k8s-master1 ~]# 
+
+pod中的默认网卡为eth0
+
+### master服务器上的网卡
+
+	[root@k8s-master1 ~]# ifconfig
+	docker0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1472
+	        inet 10.254.3.1  netmask 255.255.255.0  broadcast 0.0.0.0
+	        ether 02:42:11:b4:9c:57  txqueuelen 0  (Ethernet)
+	        RX packets 29704  bytes 10027848 (9.5 MiB)
+	        RX errors 0  dropped 0  overruns 0  frame 0
+	        TX packets 29038  bytes 13013719 (12.4 MiB)
+	        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+	
+	eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+	        inet 10.81.128.152  netmask 255.255.252.0  broadcast 10.81.131.255
+	        ether 00:16:3e:04:69:07  txqueuelen 1000  (Ethernet)
+	        RX packets 2322  bytes 273695 (267.2 KiB)
+	        RX errors 0  dropped 0  overruns 0  frame 0
+	        TX packets 3745  bytes 298249 (291.2 KiB)
+	        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+	
+	eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+	        inet 47.100.76.132  netmask 255.255.252.0  broadcast 47.100.79.255
+	        ether 00:16:3e:04:5a:0f  txqueuelen 1000  (Ethernet)
+	        RX packets 129087  bytes 45184233 (43.0 MiB)
+	        RX errors 0  dropped 0  overruns 0  frame 0
+	        TX packets 60916  bytes 72327928 (68.9 MiB)
+	        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+	
+	flannel0: flags=4305<UP,POINTOPOINT,RUNNING,NOARP,MULTICAST>  mtu 1472
+	        inet 10.254.3.0  netmask 255.255.0.0  destination 10.254.3.0
+	        unspec 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  txqueuelen 500  (UNSPEC)
+	        RX packets 1679  bytes 94024 (91.8 KiB)
+	        RX errors 0  dropped 0  overruns 0  frame 0
+	        TX packets 1679  bytes 120944 (118.1 KiB)
+	        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+ traceroute 8.8.8.8
+
+查看eth0设备的IP，这个IP应该就是之前traceroute得到的IP
+
+
+	在Master节点运行ifconfig，我们看到flannel0网卡的IP和之前Pod里的默认网卡的网段是重叠的。所以Pod中的请求就会走这个设备。
+
+	Pod访问公网应该走的是节点上的Docker0设备。flannel0是Flannel的虚拟网卡，这个网络自然是不通外网的。为了解决这个问题，我们运行：
+	
+	/sbin/iptables -t nat -I POSTROUTING -s 10.254.3.0/24 -j MASQUERADE
+	其中10.254.3.0/24就是flannel0设备的IP。
+
+
+查看iptables:
+
+	iptables -t nat -L -n
+
+发现:
+
+	Chain POSTROUTING (policy ACCEPT)
+	target     prot opt source               destination         
+	MASQUERADE  all  --  10.254.3.0/24        0.0.0.0/0           
+	KUBE-POSTROUTING  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes postrouting rules */
+	MASQUERADE  all  --  10.254.3.0/24        0.0.0.0/0      
+
+
+之前就有这条规则
+
+	MASQUERADE  all  --  10.254.3.0/24        0.0.0.0/0    
+
+没办法了!!
+
+修改
+	/usr/lib/sysctl.d/00-system.conf
+
+	net.bridge.bridge-nf-call-iptables=1
+	net.bridge.bridge-nf-call-ip6tables=1
+
+
+
+修改网络
+
+主要是开启桥接相关支持，这个是 flannel 需要的配置，具体是否需要，看自己的网络组件选择的是什么。
+
+修改/usr/lib/sysctl.d/00-system.conf,将net.bridge.bridge-nf-call-iptables改成1.之后修改当前内核状态
+
+	echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+
+	iptables -P FORWARD ACCEPT（关闭:iptables -P FORWARD DROP）
+
+
+
+
+参考文档:
+
+	https://www.tuicool.com/articles/uERzUvm
+	http://zxc0328.github.io/2017/10/26/k8s-setup-1-7/
+	http://dockone.io/question/1350
+	http://dockone.io/question/1301
+	https://github.com/kubernetes/kubernetes/issues/40182
+	https://github.com/k8sp/sextant/issues/525
+	
+	https://github.com/JunfeiYang/Python_project/issues/1
+
+
+### 上面一堆操作之后，又发现了之前遇到的难题，之前是重启服务器，重装软件发现没问题了，现在终于发现又问题了dial tcp 10.254.0.1:443: i/o timeout
+
+https://10.254.0.1:443/api/v1/services?resourceVersion=0: dial tcp 10.254.0.1:443: i/o timeout
+
+出在了flanneld上，停止了，就能访问
+
+
+解决方案：
+
+	  curl -v https://10.254.0.1
+	  systemctl stop flanneld
+	  systemctl stop docker
+	  ip link delete docker0 #删除虚拟网卡
+
+启动即可：
+
+	systemctl start flanneld
+	systemctl start docker
+	systemctl start kubelet
+
+
+
+
+
+### iptables 如果没有重要规则，执行清空
+	iptables -P INPUT ACCEPT
+	iptables -F
+
+
+
+删除转发
+	iptables -t nat -nL --line-number
+	iptables -t nat -D POSTROUTING 1  //删除nat表中postrouting的第一条规则 
+
+	在nat表中postrouting的最后插入
+	iptables -t nat -A POSTROUTING -s 10.254.3.0/24 -j MASQUERADE
+
+	ping -c 3 www.baidu.com
+
+	docker exec xxx ping -c 3 www.baidu.com
+	
+最后发现是docker不能访问外网的问题
+
+测试：
+
+	docker run --name test -d -t -i nginx：1.9
+
+	docker exec de7f1336 ping -c 3 www.baidu.com
+
+	[root@k8s-master1 ~]# docker exec de7f1336 ping -c 3 www.baidu.com
+	PING www.a.shifen.com (220.181.111.188): 56 data bytes
+	64 bytes from 220.181.111.188: icmp_seq=0 ttl=50 time=29.240 ms
+	64 bytes from 220.181.111.188: icmp_seq=1 ttl=50 time=29.268 ms
+	64 bytes from 220.181.111.188: icmp_seq=2 ttl=50 time=29.249 ms
+	--- www.a.shifen.com ping statistics ---
+	3 packets transmitted, 3 packets received, 0% packet loss
+	round-trip min/avg/max/stddev = 29.240/29.252/29.268/0.000 ms
+	[root@k8s-master1 ~]# 
+
+	发现能访问,说明单用docker能访问,在pod里面就 不能访问
+
+	发现用baidu.com的ip可以访问：
+	[root@k8s-master1 ~]# docker exec de7f1336 ping -c 3 111.13.100.91
+	PING 111.13.100.91 (111.13.100.91): 56 data bytes
+	64 bytes from 111.13.100.91: icmp_seq=0 ttl=48 time=27.432 ms
+	64 bytes from 111.13.100.91: icmp_seq=1 ttl=48 time=27.259 ms
+	64 bytes from 111.13.100.91: icmp_seq=2 ttl=48 time=27.248 ms
+	--- 111.13.100.91 ping statistics ---
+	3 packets transmitted, 3 packets received, 0% packet loss
+	round-trip min/avg/max/stddev = 27.248/27.313/27.432/0.084 ms
+	[root@k8s-master1 ~]# 
+	能访问，这说明是dns解析有问题了，没有将域名解析出来。
+
+	装个kube-dns服务就好了
+
+	https://github.com/zouhuigang/kubernetes/tree/master/k8s_1.8.4/kube-dns
+
+
+http://blog.51yip.com/linux/1404.html 
 	
 
 
+
+
+	
 

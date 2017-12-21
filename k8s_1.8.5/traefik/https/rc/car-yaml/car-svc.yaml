@@ -3,12 +3,13 @@ kind: Service
 metadata:
     name: svc-car
 spec:
-  type: ClusterIP
+    #type: ClusterIP
+  type: NodePort
   ports:
     - name: http
       targetPort: 80
       port: 80 
-      #nodePort: 30012
+      nodePort: 30012
       protocol: TCP
     - name: https
       targetPort: 443
